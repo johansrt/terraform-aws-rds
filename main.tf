@@ -1,0 +1,95 @@
+locals {
+  name = "${var.project}-${var.env}-${var.identifier}"
+
+  common_tags = merge({
+    Project     = var.project
+    Environment = var.env
+    ManagedBy   = "Terraform"
+  }, var.tags)
+}
+
+# -------------------------------
+# Subnet Group
+# -------------------------------
+resource "aws_db_subnet_group" "this" {
+  name       = "${local.name}-sng"
+  subnet_ids = var.subnet_ids
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name}-sng"
+  })
+}
+
+# -------------------------------
+# Parameter Group
+# -------------------------------
+resource "aws_db_parameter_group" "this" {
+  name   = "${local.name}-pg"
+  family = "${var.engine}${split(".", var.engine_version)[0]}"
+
+  dynamic "parameter" {
+    for_each = var.db_parameters
+    content {
+      name  = parameter.value.name
+      value = parameter.value.value
+    }
+  }
+
+  tags = local.common_tags
+}
+
+# -------------------------------
+# RDS Instance
+# -------------------------------
+resource "aws_db_instance" "this" {
+  identifier = local.name
+
+  engine         = var.engine
+  engine_version = var.engine_version
+  instance_class = var.instance_class
+
+  allocated_storage     = var.allocated_storage
+  max_allocated_storage = var.max_allocated_storage
+  storage_type          = "gp3"
+
+  db_name  = var.db_name
+  username = var.db_username
+
+  manage_master_user_password = true
+
+  db_subnet_group_name   = aws_db_subnet_group.this.name
+  parameter_group_name   = aws_db_parameter_group.this.name
+  vpc_security_group_ids = var.vpc_security_group_ids
+
+  multi_az = var.multi_az
+
+  publicly_accessible = false
+  storage_encrypted   = true
+  kms_key_id          = var.kms_key_id
+
+  backup_retention_period = var.backup_retention_period
+  backup_window           = var.backup_window
+  maintenance_window      = var.maintenance_window
+
+  deletion_protection = var.deletion_protection
+
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${local.name}-final-snapshot"
+
+  performance_insights_enabled          = var.performance_insights_enabled
+  performance_insights_retention_period = 7
+
+  monitoring_interval = var.monitoring_interval
+
+  enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
+
+  auto_minor_version_upgrade = true
+
+  tags = merge(local.common_tags, {
+    Name = local.name
+  })
+
+  lifecycle {
+    prevent_destroy = var.prevent_destroy
+  }
+}
