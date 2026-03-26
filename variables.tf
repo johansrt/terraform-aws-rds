@@ -74,12 +74,6 @@ variable "deletion_protection" {
   default     = true
 }
 
-variable "prevent_destroy" {
-  description = "Evita destroy desde Terraform"
-  type        = bool
-  default     = false
-}
-
 variable "backup_retention_period" {
   description = "Días de backup"
   type        = number
