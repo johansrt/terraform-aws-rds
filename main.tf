@@ -81,6 +81,7 @@ resource "aws_db_instance" "this" {
   performance_insights_retention_period = 7
 
   monitoring_interval = var.monitoring_interval
+  monitoring_role_arn = aws_iam_role.rds_monitoring.arn
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
@@ -95,4 +96,29 @@ resource "aws_db_instance" "this" {
   lifecycle {
     prevent_destroy = true
   }
+}
+
+# -------------------------------
+# Role para RDS Performance Insights
+# -------------------------------
+resource "aws_iam_role" "rds_monitoring" {
+  name = "${var.identifier}-rds-monitoring-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "monitoring.rds.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_monitoring" {
+  role       = aws_iam_role.rds_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
