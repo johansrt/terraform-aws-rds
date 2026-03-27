@@ -125,6 +125,22 @@ variable "kms_key_id" {
   default     = null
 }
 
+variable "iam_database_authentication_enabled" {
+  description = "Habilitar autenticación IAM para RDS"
+  type        = bool
+  default     = true
+}
+
+variable "performance_insights_kms_key_id" {
+  description = "KMS Key para cifrar Performance Insights"
+  type        = string
+  default     = null
+  validation {
+  condition     = var.performance_insights_enabled == false || var.performance_insights_kms_key_id != null
+  error_message = "Debe proporcionar performance_insights_kms_key_id si Performance Insights está habilitado."
+}
+}
+
 variable "tags" {
   description = "Tags adicionales"
   type        = map(string)

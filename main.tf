@@ -77,6 +77,7 @@ resource "aws_db_instance" "this" {
   final_snapshot_identifier = "${local.name}-final-snapshot"
 
   performance_insights_enabled          = var.performance_insights_enabled
+  performance_insights_kms_key_id       = var.performance_insights_kms_key_id
   performance_insights_retention_period = 7
 
   monitoring_interval = var.monitoring_interval
@@ -84,6 +85,8 @@ resource "aws_db_instance" "this" {
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
   auto_minor_version_upgrade = true
+
+  iam_database_authentication_enabled = var.iam_database_authentication_enabled
 
   tags = merge(local.common_tags, {
     Name = local.name
