@@ -77,7 +77,7 @@ resource "aws_db_instance" "this" {
   final_snapshot_identifier = "${local.name}-final-snapshot"
 
   performance_insights_enabled          = var.performance_insights_enabled
-  performance_insights_kms_key_id       = var.performance_insights_kms_key_id
+  performance_insights_kms_key_id       = aws_kms_key.rds_kms_performance.arn
   performance_insights_retention_period = 7
 
   monitoring_interval = var.monitoring_interval
@@ -121,4 +121,13 @@ resource "aws_iam_role" "rds_monitoring" {
 resource "aws_iam_role_policy_attachment" "rds_monitoring" {
   role       = aws_iam_role.rds_monitoring.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
+resource "aws_kms_key" "rds_kms_performance" {
+  description             = "KMS para RDS y Performance Insights"
+  deletion_window_in_days = 7
+
+  tags = {
+    Name = "${var.project}-${var.env}-${var.identifier}rds-kms"
+  }
 }
