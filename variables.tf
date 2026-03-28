@@ -105,7 +105,7 @@ variable "performance_insights_enabled" {
 variable "performance_insights_retention_period" {
   description = "Días de retención para Performance Insights"
   type        = number
-  default = 7
+  default     = 7
 }
 
 variable "monitoring_interval" {

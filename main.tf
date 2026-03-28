@@ -76,8 +76,8 @@ resource "aws_db_instance" "this" {
   skip_final_snapshot       = false
   final_snapshot_identifier = "${local.name}-final-snapshot"
 
-  performance_insights_enabled = var.performance_insights_enabled
-  performance_insights_kms_key_id = var.performance_insights_enabled ? aws_kms_key.rds_kms_performance[0].arn : null
+  performance_insights_enabled          = var.performance_insights_enabled
+  performance_insights_kms_key_id       = var.performance_insights_enabled ? aws_kms_key.rds_kms_performance[0].arn : null
   performance_insights_retention_period = var.performance_insights_enabled ? var.performance_insights_retention_period : null
 
   monitoring_interval = var.monitoring_interval
