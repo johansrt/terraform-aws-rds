@@ -24,7 +24,7 @@ variable "engine_version" {
   type        = string
   validation {
     condition     = can(regex("^\\d+\\.\\d+", var.engine_version))
-    error_message = "Engine version inválido"
+    error_message = "Engine version inválido, debe ser del formato 'X.Y' (ej: '18.3')."
   }
 }
 

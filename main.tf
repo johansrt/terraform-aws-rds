@@ -102,23 +102,6 @@ resource "aws_db_instance" "this" {
 # Role para RDS Performance Insights
 # -------------------------------
 resource "aws_iam_role" "rds_monitoring" {
-  name = "${var.identifier}-rds-monitoring-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "monitoring.rds.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role" "rds_monitoring" {
   count = var.monitoring_interval > 0 ? 1 : 0
 
   name = "${local.name}-rds-monitoring-role"
@@ -147,6 +130,8 @@ resource "aws_kms_key" "rds_kms_performance" {
 
   description             = "KMS para Performance Insights"
   deletion_window_in_days = 7
+
+  enable_key_rotation = true
 
   tags = {
     Name = "${local.name}-rds-kms"
