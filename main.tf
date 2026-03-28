@@ -76,18 +76,18 @@ resource "aws_db_instance" "this" {
   skip_final_snapshot       = false
   final_snapshot_identifier = "${local.name}-final-snapshot"
 
-  performance_insights_enabled          = var.performance_insights_enabled
-  performance_insights_kms_key_id       = aws_kms_key.rds_kms_performance.arn
-  performance_insights_retention_period = 7
+  performance_insights_enabled = var.performance_insights_enabled
+  performance_insights_kms_key_id = var.performance_insights_enabled ? aws_kms_key.rds_kms_performance[0].arn : null
+  performance_insights_retention_period = var.performance_insights_enabled ? var.performance_insights_retention_period : null
 
   monitoring_interval = var.monitoring_interval
-  monitoring_role_arn = aws_iam_role.rds_monitoring.arn
+  monitoring_role_arn = var.monitoring_interval > 0 ? aws_iam_role.rds_monitoring[0].arn : null
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
   auto_minor_version_upgrade = true
 
-  iam_database_authentication_enabled = var.iam_database_authentication_enabled
+  iam_database_authentication_enabled = contains(["postgres", "mysql"], var.engine) ? var.iam_database_authentication_enabled : null
 
   tags = merge(local.common_tags, {
     Name = local.name
@@ -118,16 +118,37 @@ resource "aws_iam_role" "rds_monitoring" {
   })
 }
 
+resource "aws_iam_role" "rds_monitoring" {
+  count = var.monitoring_interval > 0 ? 1 : 0
+
+  name = "${local.name}-rds-monitoring-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "monitoring.rds.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "rds_monitoring" {
-  role       = aws_iam_role.rds_monitoring.name
+  count = var.monitoring_interval > 0 ? 1 : 0
+
+  role       = aws_iam_role.rds_monitoring[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
 resource "aws_kms_key" "rds_kms_performance" {
-  description             = "KMS para RDS y Performance Insights"
+  count = var.performance_insights_enabled ? 1 : 0
+
+  description             = "KMS para Performance Insights"
   deletion_window_in_days = 7
 
   tags = {
-    Name = "${var.project}-${var.env}-${var.identifier}rds-kms"
+    Name = "${local.name}-rds-kms"
   }
 }

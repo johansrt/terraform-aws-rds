@@ -22,6 +22,10 @@ variable "engine" {
 variable "engine_version" {
   description = "Versión del motor"
   type        = string
+  validation {
+    condition     = can(regex("^\\d+\\.\\d+", var.engine_version))
+    error_message = "Engine version inválido"
+  }
 }
 
 variable "instance_class" {
@@ -98,6 +102,12 @@ variable "performance_insights_enabled" {
   default     = true
 }
 
+variable "performance_insights_retention_period" {
+  description = "Días de retención para Performance Insights"
+  type        = number
+  default = 7
+}
+
 variable "monitoring_interval" {
   description = "Intervalo de monitoreo (segundos)"
   type        = number
@@ -130,16 +140,6 @@ variable "iam_database_authentication_enabled" {
   type        = bool
   default     = true
 }
-
-//variable "performance_insights_kms_key_id" {
-//  description = "KMS Key para cifrar Performance Insights"
-//  type        = string
-//  default     = null
-//  validation {
-//    condition     = var.performance_insights_enabled == false || var.performance_insights_kms_key_id != null
-//    error_message = "Debe proporcionar performance_insights_kms_key_id si Performance Insights está habilitado."
-//  }
-//}
 
 variable "tags" {
   description = "Tags adicionales"
